@@ -20,8 +20,8 @@ https://github.com/jacobhallberg/pytorch_stylegan_encoder
 I used the pre-trained models from https://github.com/jacobhallberg/pytorch_stylegan_encoder/releases/tag/v1.0 . As mentioned, place the StyleGAN model in ./InterFaceGAN/models/pretrain/ . Place the Image To Latent model at the root of the repo.
 
 1) Align raw images
-> python align_images.py PATH_TO_RAW_IMAGES/ inputs/
+> python align_images.py PATH_TO_RAW_IMAGES/ PATH_TO_ALIGNED_IMAGES/
 
 2) Convert images using Pre-trained StyleGAN.
-> python test.py
+> python main.py --aligned_path PATH_TO_ALIGNED_IMAGES/ --output_path PATH_TO_OUTPUTS/
 
