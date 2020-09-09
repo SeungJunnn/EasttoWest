@@ -6,7 +6,7 @@
 
 Embed Eastern Faces to Western Faces using StyleGAN.
 
-![image](./teaser.jpg)
+![image](./demo.png)
 **Figure:** *Embedding result for a Korean celebrity.*
 
 Original Codes from : 
