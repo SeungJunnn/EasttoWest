@@ -3,6 +3,7 @@
 ![TensorFlow 1.15.0](https://img.shields.io/badge/tensorflow-1.15.0-green.svg?style=plastic)
 ![Pytorch 1.1.0](https://img.shields.io/badge/pytorch-1.1.0-green.svg?style=plastic)
 ![Keras 2.2.4](https://img.shields.io/badge/keras-2.2.4-green.svg?style=plastic)
+
 Embed Eastern Faces to Western Faces using StyleGAN.
 
 Original Codes from : 
