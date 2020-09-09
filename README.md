@@ -1,5 +1,5 @@
 # EasttoWest
-Embed Eastern Faces to Western Faces
+Embed Eastern Faces to Western Faces using StyleGAN.
 
 Original Codes from : 
 
