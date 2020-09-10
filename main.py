@@ -16,22 +16,21 @@ synthesizer = StyleGANGenerator("stylegan_ffhq").model.synthesis
 
 def Embedding(image_path, image_name):
     vgg_processing = VGGProcessing()
+    post_processing = PostSynthesisProcessing()
+    image_to_latent = ImageToLatent().to(device)
+    image_to_latent.load_state_dict(torch.load('./image_to_latent.pt'))
+    image_to_latent.eval()
+    post_process = lambda image: post_processing(image).detach().cpu().numpy().astype(np.uint8)[0]
 
     reference_image = torch.from_numpy(load_images([os.path.join(image_path,image_name)])).to(device)
     reference_image = vgg_processing(reference_image).detach()
 
-    image_to_latent = ImageToLatent().to(device)
-    image_to_latent.load_state_dict(torch.load('./image_to_latent.pt'))
-    image_to_latent.eval()
     pred_dlatents = image_to_latent(reference_image)
-
-    post_processing = PostSynthesisProcessing()
-    post_process = lambda image: post_processing(image).detach().cpu().numpy().astype(np.uint8)[0]
 
     pred_images = synthesizer(pred_dlatents)
     pred_images = post_process(pred_images)
-
     pred_images = np.transpose(pred_images, (1,2,0))
+
     plt.imsave('./outputs/'+image_name, pred_images)
     print('Embedding for Image {} is finished.'.format(image_name))
 
