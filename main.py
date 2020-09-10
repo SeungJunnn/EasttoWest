@@ -10,15 +10,17 @@ import os
 import matplotlib.pyplot as plt
 import argparse
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 synthesizer = StyleGANGenerator("stylegan_ffhq").model.synthesis
 
 def Embedding(image_path, image_name):
     vgg_processing = VGGProcessing()
 
-    reference_image = torch.from_numpy(load_images([os.path.join(image_path,image_name)])).cuda()
+    reference_image = torch.from_numpy(load_images([os.path.join(image_path,image_name)])).to(device)
     reference_image = vgg_processing(reference_image).detach()
 
-    image_to_latent = ImageToLatent().cuda()
+    image_to_latent = ImageToLatent().to(device)
     image_to_latent.load_state_dict(torch.load('./image_to_latent.pt'))
     image_to_latent.eval()
     pred_dlatents = image_to_latent(reference_image)
@@ -45,8 +47,7 @@ def main():
     if not (os.path.exists(args.output_path)):
         os.makedirs(args.output_path)
 
-    images = os.listdir(args.aligned_path)
-    for image in images:
+    for image in os.listdir(args.aligned_path):
         Embedding(args.aligned_path, image)
 
 if __name__ == "__main__":
