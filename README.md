@@ -6,7 +6,7 @@
 
 Embed Eastern Faces to Western Faces using StyleGAN.
 
-![image](./results/demo.png)
+![image](./resources/demo.png)
 **Figure:** *Embedding result for a Korean celebrity.*
 
 Original Codes from : 
@@ -29,7 +29,7 @@ python align_images.py PATH_TO_RAW_IMAGES/ PATH_TO_ALIGNED_IMAGES/
 python main.py --aligned_path PATH_TO_ALIGNED_IMAGES/ --output_path PATH_TO_OUTPUTS/
 ```
 
-![image](./results/result.png)
+![image](./resources/result.png)
 **Figure:** *Embedding result for Korean celebrities, a game character and myself.*
 
 As shown above, the model severely distorts the identity of original inputs sometimes. I will focus more on fixing StyleGAN Encoder to address this.
