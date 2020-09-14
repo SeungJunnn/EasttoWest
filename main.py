@@ -14,6 +14,27 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 synthesizer = StyleGANGenerator("stylegan_ffhq").model.synthesis
 
+augments = transforms.Compose([
+    transforms.Resize(256),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225])
+])
+
+def normalized_to_normal_image(image):
+    mean=torch.tensor([0.485, 0.456, 0.406]).view(-1,1,1).float()
+    std=torch.tensor([0.229, 0.224, 0.225]).view(-1,1,1).float()
+    
+    image = image.detach().cpu()
+    
+    image *= std
+    image += mean
+    image *= 255
+    
+    image = image.numpy()[0]
+    image = np.transpose(image, (1,2,0))
+    return image.astype(np.uint8)
+
 def Embedding(image_path, image_name):
     vgg_processing = VGGProcessing()
     post_processing = PostSynthesisProcessing()
