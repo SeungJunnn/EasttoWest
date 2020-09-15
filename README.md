@@ -4,7 +4,7 @@
 ![Pytorch 1.1.0](https://img.shields.io/badge/pytorch-1.1.0-green.svg?style=plastic)
 ![Keras 2.2.4](https://img.shields.io/badge/keras-2.2.4-green.svg?style=plastic)
 
-# 1. EasttoWest
+## 1. EasttoWest
 
 Embed Eastern Faces to Western Faces using StyleGAN.
 
