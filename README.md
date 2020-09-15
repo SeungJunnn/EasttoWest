@@ -4,6 +4,13 @@
 ![Pytorch 1.1.0](https://img.shields.io/badge/pytorch-1.1.0-green.svg?style=plastic)
 ![Keras 2.2.4](https://img.shields.io/badge/keras-2.2.4-green.svg?style=plastic)
 
+Do align the input images before you do the tasks below:
+
+Align raw images
+```bash
+python align_images.py PATH_TO_RAW_IMAGES/ PATH_TO_ALIGNED_IMAGES/
+```
+
 ## 1. EasttoWest
 
 Embed Eastern Faces to Western Faces using StyleGAN.
@@ -21,12 +28,8 @@ https://github.com/jacobhallberg/pytorch_stylegan_encoder
 
 I used the pre-trained models from https://github.com/jacobhallberg/pytorch_stylegan_encoder/releases/tag/v1.0 . As mentioned, place the StyleGAN model in ./InterFaceGAN/models/pretrain/ . Place the Image To Latent model at the root of the repo.
 
-1) Align raw images
-```bash
-python align_images.py PATH_TO_RAW_IMAGES/ PATH_TO_ALIGNED_IMAGES/
-```
 
-2) Convert images using Pre-trained StyleGAN.
+1) Convert images using Pre-trained StyleGAN.
 ```bash
 python main.py --aligned_path PATH_TO_ALIGNED_IMAGES/ --output_path PATH_TO_OUTPUTS/
 ```
@@ -38,6 +41,30 @@ As shown above, the model severely distorts the identity of original inputs some
 
 ## 2. FaceBlending
 
-Mixing two input faces.
+Mixing two input faces. I mixed my face with Conor Mcgregor's.
 
 ![image](./resources/mix.png)
+
+### Usage
+
+1) Extract latent representations of a pair of input images.
+```bash
+python encode_image.py PATH+NAME_OF_ALIGNED_IMAGE_1 SAVING_PATH_1 --save_optimized_image True --iterations 1000 --use_latent_finder True
+```
+```bash
+python encode_image.py PATH+NAME_OF_ALIGNED_IMAGE_2 SAVING_PATH_2 --save_optimized_image True --iterations 1000 --use_latent_finder True
+```
+
+This might take 2~3 minutes per image.
+
+
+2) Blend input images with extracted latents.
+```bash
+python blend.py --latent1_path SAVING_PATH_1 --latent2_path SAVING_PATH_2
+```
+Below will yield a different result from above. So, try it!
+```bash
+python blend.py --latent1_path SAVING_PATH_2 --latent2_path SAVING_PATH_1
+```
+
+
