@@ -67,4 +67,6 @@ Below will yield a different result from above. So, try it!
 python blend.py --latent1_path SAVING_PATH_2 --latent2_path SAVING_PATH_1
 ```
 
+For a sheer curiosity, I mixed myself with an animation character, Elsa. It shows quite reasonable mixture as below.
 
+![image](./resources/mix_anime.png)
