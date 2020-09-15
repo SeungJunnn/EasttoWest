@@ -37,3 +37,7 @@ python main.py --aligned_path PATH_TO_ALIGNED_IMAGES/ --output_path PATH_TO_OUTP
 As shown above, the model severely distorts the identity of original inputs sometimes. I will focus more on fixing StyleGAN Encoder to address this.
 
 ## 2. FaceBlending
+
+Mixing two input faces.
+
+![image](./resources/mix.png)
