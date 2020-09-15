@@ -17,7 +17,7 @@ https://github.com/Puzer/stylegan-encoder/
 
 https://github.com/jacobhallberg/pytorch_stylegan_encoder
 
-# Usage
+### Usage
 
 I used the pre-trained models from https://github.com/jacobhallberg/pytorch_stylegan_encoder/releases/tag/v1.0 . As mentioned, place the StyleGAN model in ./InterFaceGAN/models/pretrain/ . Place the Image To Latent model at the root of the repo.
 
@@ -36,4 +36,4 @@ python main.py --aligned_path PATH_TO_ALIGNED_IMAGES/ --output_path PATH_TO_OUTP
 
 As shown above, the model severely distorts the identity of original inputs sometimes. I will focus more on fixing StyleGAN Encoder to address this.
 
-# 2. FaceBlending
+## 2. FaceBlending
