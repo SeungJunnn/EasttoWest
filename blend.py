@@ -25,6 +25,9 @@ def latentmix(path1, path2, device):
         dlatents.append(dlatent)
     dlatents.append(dlatents_1)
 
+    mean = (dlatents_1+dlatents_2) / 2
+    dlatents.append(mean)
+
     return dlatents
 
 def postprocess(pred_images):
@@ -37,7 +40,10 @@ def save_images(latent_list, generator):
         pred_images = generator(dlatent)
         pred_images = postprocess(pred_images)
         pred_images = np.transpose(pred_images, (1,2,0))
-        plt.imsave('mix_'+str(i)+'.png', pred_images)
+        if i < len(latent_list)-1:
+            plt.imsave('mix_'+str(i)+'.png', pred_images)
+        else:
+            plt.imsave('mean.png', pred_images)
         print('Embedding for Image number {} is finished.'.format(str(i)))
 
 def main():
