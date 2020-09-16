@@ -12,6 +12,13 @@ import argparse
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+def fineblending(dlatents_1, dlatents_2):
+    latents = torch.empty(size=dlatents_1.shape).to(device)
+    for i in range(18):
+        latents[:,i] = (dlatents_1[:,i] * i + dlatents_2[:,i] * (17-i))/17
+    return latents
+
+
 def latentmix(path1, path2, device):
     dlatents=[]
     dlatents_1 = torch.from_numpy(np.load(path1)).to(device)
@@ -27,6 +34,8 @@ def latentmix(path1, path2, device):
 
     mean = (dlatents_1+dlatents_2) / 2
     dlatents.append(mean)
+    dlatents.append(fineblending(dlatents_1, dlatents_2))
+    dlatents.append(fineblending(dlatents_2, dlatents_1))
 
     return dlatents
 
@@ -40,10 +49,12 @@ def save_images(latent_list, generator):
         pred_images = generator(dlatent)
         pred_images = postprocess(pred_images)
         pred_images = np.transpose(pred_images, (1,2,0))
-        if i < len(latent_list)-1:
+        if i < len(latent_list)-3:
             plt.imsave('mix_'+str(i)+'.png', pred_images)
+        elif i == len(latent_list)-3:
+            plt.imsave('mix.png', pred_images)
         else:
-            plt.imsave('mean.png', pred_images)
+            plt.imsave('mix_fine_{}.png'.format(str(i)), pred_images)
         print('Embedding for Image number {} is finished.'.format(str(i)))
 
 def main():
