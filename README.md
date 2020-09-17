@@ -70,3 +70,7 @@ python blend.py --latent1_path SAVING_PATH_2 --latent2_path SAVING_PATH_1
 For a sheer curiosity, I mixed myself with an animation character, Elsa. It shows quite reasonable mixture as below.
 
 ![image](./resources/mix_anime.png)
+
+Additionally, when I use a blending technique, I can get better embedding of my face to western.
+
+![image](./resources/west.png)
