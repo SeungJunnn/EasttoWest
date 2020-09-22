@@ -7,14 +7,39 @@ from loss import LossBuilder
 
 import torch
 import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
+import torchvision
 import numpy as np
 import os
 import matplotlib.pyplot as plt
 from functools import partial
 import argparse
+from pathlib import Path
+from PIL import Image
+from math import log10, ceil
+
+class Images(Dataset):
+    def __init__(self, root_dir, duplicates):
+        self.root_path = Path(root_dir)
+        self.image_list = list(self.root_path.glob("*.png"))
+        self.duplicates = duplicates # Number of times to duplicate the image in the dataset to produce multiple HR images
+
+    def __len__(self):
+        return self.duplicates*len(self.image_list)
+
+    def __getitem__(self, idx):
+        img_path = self.image_list[idx//self.duplicates]
+        image = torchvision.transforms.ToTensor()(Image.open(img_path))
+        if(self.duplicates == 1):
+            return image,img_path.stem
+        else:
+            return image,img_path.stem+f"_{(idx % self.duplicates)+1}"
+
 
 class PULSE(nn.Module):
     def __init__(self):
+        super(PULSE, self).__init__()
+
         self.mapper = StyleGANGenerator("stylegan_ffhq").model.mapping
         self.truncation = StyleGANGenerator("stylegan_ffhq").model.mapping
         self.synthesizer = StyleGANGenerator("stylegan_ffhq").model.synthesis
@@ -31,7 +56,7 @@ class PULSE(nn.Module):
             torch.save(gaussian_fit,"gaussian_fit.pt")
         return gaussian_fit
 
-    def foward(self,
+    def forward(self,
                ref_im,
                loss_str,
                eps,
@@ -127,5 +152,55 @@ class PULSE(nn.Module):
         else:
             print("Could not find a face that downscales correctly within epsilon")
 
+def main():
+    parser = argparse.ArgumentParser(description='PULSE')
+    parser.add_argument('--input_dir', type=str, default='./anime', help='')
+    parser.add_argument('--output_dir', type=str, default='./realization', help='')
+    parser.add_argument('--batch_size', type=int, default=1, help='Batch size to use during optimization')
+
+    parser.add_argument('--loss_str', type=str, default="100*L2+0.05*GEOCROSS", help='Loss function to use')
+    parser.add_argument('--eps', type=float, default=2e-3, help='Target for downscaling loss (L2)')
+    parser.add_argument('--tile_latent', action='store_true', help='Whether to forcibly tile the same latent 18 times')
+    parser.add_argument('--opt_name', type=str, default='adam', help='Optimizer to use in projected gradient descent')
+    parser.add_argument('--steps', type=int, default=100, help='Number of optimization steps')
+    parser.add_argument('--learning_rate', type=float, default=0.4, help='Learning rate to use during optimization')
+    parser.add_argument('--lr_schedule', type=str, default='linear1cycledrop', help='fixed, linear1cycledrop, linear1cycle')
+    parser.add_argument('--save_intermediate', action='store_true', help='Whether to store and save intermediate HR and LR images during optimization')
+    args = parser.parse_args()
+
+    dataset = Images(args.input_dir, duplicates=3)
+    out_path = Path(args.output_dir)
+    out_path.mkdir(parents=True, exist_ok=True)
+
+    dataloader = DataLoader(dataset, batch_size=args.batch_size)
+
+    model = PULSE()
+    # model = DataParallel(model)
+
+    toPIL = torchvision.transforms.ToPILImage()
+
+    for ref_im, ref_im_name in dataloader:
+        if args.save_intermediate:
+            padding = ceil(log10(100))
+            for i in range(args.batch_size):
+                int_path_HR = Path(out_path / ref_im_name[i] / "HR")
+                int_path_LR = Path(out_path / ref_im_name[i] / "LR")
+                int_path_HR.mkdir(parents=True, exist_ok=True)
+                int_path_LR.mkdir(parents=True, exist_ok=True)
+            for j,(HR,LR) in enumerate(model(ref_im, args.loss_str, args.eps, args.tile_latent, args.opt_name, args.steps, args.learning_rate, args.lr_schedule, args.save_intermediate)):
+                for i in range(args.batch_size):
+                    toPIL(HR[i].cpu().detach().clamp(0, 1)).save(
+                        int_path_HR / f"{ref_im_name[i]}_{j:0{padding}}.png")
+                    toPIL(LR[i].cpu().detach().clamp(0, 1)).save(
+                        int_path_LR / f"{ref_im_name[i]}_{j:0{padding}}.png")
+        else:
+            #out_im = model(ref_im,**kwargs)
+            for j,(HR,LR) in enumerate(model(ref_im, args.loss_str, args.eps, args.tile_latent, args.opt_name, args.steps, args.learning_rate, args.lr_schedule, args.save_intermediate)):
+                for i in range(args.batch_size):
+                    toPIL(HR[i].cpu().detach().clamp(0, 1)).save(
+                        out_path / f"{ref_im_name[i]}.png")
+
+if __name__ == "__main__":
+    main()
         
 
