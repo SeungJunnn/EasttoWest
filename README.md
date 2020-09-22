@@ -4,6 +4,12 @@
 ![Pytorch 1.1.0](https://img.shields.io/badge/pytorch-1.1.0-green.svg?style=plastic)
 ![Keras 2.2.4](https://img.shields.io/badge/keras-2.2.4-green.svg?style=plastic)
 
+Original Codes from : 
+
+https://github.com/Puzer/stylegan-encoder/
+
+https://github.com/jacobhallberg/pytorch_stylegan_encoder
+
 Do align the input images before you do the tasks below:
 
 Align raw images
@@ -17,12 +23,6 @@ Embed Eastern Faces to Western Faces using StyleGAN.
 
 ![image](./resources/demo.png)
 **Figure:** *Embedding result for a Korean celebrity.*
-
-Original Codes from : 
-
-https://github.com/Puzer/stylegan-encoder/
-
-https://github.com/jacobhallberg/pytorch_stylegan_encoder
 
 ### Usage
 
