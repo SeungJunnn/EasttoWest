@@ -26,7 +26,7 @@ class Images(Dataset):
         self.root_path = Path(root_dir)
         self.image_list = list(self.root_path.glob("*.png"))
         self.duplicates = duplicates # Number of times to duplicate the image in the dataset to produce multiple HR images
-        self.transform = Compose([Scale((256, 256)), ToTensor()])
+        self.transform = Compose([Scale((128, 128)), ToTensor()])
 
     def __len__(self):
         return self.duplicates*len(self.image_list)
@@ -48,7 +48,7 @@ class PULSE(nn.Module):
         G = StyleGANGenerator("stylegan_ffhq")
 
         self.mapper = G.model.mapping
-        self.truncation = G.model.mapping
+        self.truncation = G.model.truncation
         self.synthesizer = G.model.synthesis
 
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.2)
@@ -59,6 +59,7 @@ class PULSE(nn.Module):
         else:
             latent = torch.randn((100000,512),dtype=torch.float32, device="cuda")
             latent_out = torch.nn.LeakyReLU(5)(self.mapper(latent))
+            
             gaussian_fit = {"mean": latent_out.mean(0), "std": latent_out.std(0)}
             torch.save(gaussian_fit,"gaussian_fit.pt")
         return gaussian_fit
