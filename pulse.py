@@ -4,11 +4,14 @@ from models.image_to_latent import ImageToLatent
 from models.latent_optimizer import VGGProcessing
 from utilities.images import load_images
 from loss import LossBuilder
+from SphericalOptimizer import SphericalOptimizer
 
+import time
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 import torchvision
+from torchvision.transforms import ToTensor, Scale, Compose
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -23,13 +26,15 @@ class Images(Dataset):
         self.root_path = Path(root_dir)
         self.image_list = list(self.root_path.glob("*.png"))
         self.duplicates = duplicates # Number of times to duplicate the image in the dataset to produce multiple HR images
+        self.transform = Compose([Scale((256, 256)), ToTensor()])
 
     def __len__(self):
         return self.duplicates*len(self.image_list)
 
     def __getitem__(self, idx):
         img_path = self.image_list[idx//self.duplicates]
-        image = torchvision.transforms.ToTensor()(Image.open(img_path))
+        # image = torchvision.transforms.ToTensor()(Image.open(img_path))
+        image = self.transform(Image.open(img_path))
         if(self.duplicates == 1):
             return image,img_path.stem
         else:
@@ -40,17 +45,19 @@ class PULSE(nn.Module):
     def __init__(self):
         super(PULSE, self).__init__()
 
-        self.mapper = StyleGANGenerator("stylegan_ffhq").model.mapping
-        self.truncation = StyleGANGenerator("stylegan_ffhq").model.mapping
-        self.synthesizer = StyleGANGenerator("stylegan_ffhq").model.synthesis
+        G = StyleGANGenerator("stylegan_ffhq")
+
+        self.mapper = G.model.mapping
+        self.truncation = G.model.mapping
+        self.synthesizer = G.model.synthesis
 
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.2)
 
-    def gaussian_fit(self):
+    def Gaussian_fit(self):
         if os.path.isfile('gaussian_fit.pt'):
             gaussian_fit = torch.load('gaussian_fit.pt')
         else:
-            latent = torch.randn((1000000,512),dtype=torch.float32, device="cuda")
+            latent = torch.randn((100000,512),dtype=torch.float32, device="cuda")
             latent_out = torch.nn.LeakyReLU(5)(self.mapper(latent))
             gaussian_fit = {"mean": latent_out.mean(0), "std": latent_out.std(0)}
             torch.save(gaussian_fit,"gaussian_fit.pt")
@@ -67,7 +74,9 @@ class PULSE(nn.Module):
                lr_schedule,
                save_intermediate):
 
-        gaussian_fit = self.gaussian_fit()
+        gaussian_fit = self.Gaussian_fit()
+
+        batch_size = ref_im.shape[0]
 
         if(tile_latent):
             latent = torch.randn(
@@ -95,6 +104,8 @@ class PULSE(nn.Module):
         schedule_func = schedule_dict[lr_schedule]
         scheduler = torch.optim.lr_scheduler.LambdaLR(opt.opt, schedule_func)
 
+        ref_im = ref_im.cuda()
+
         loss_builder = LossBuilder(ref_im, loss_str, eps).cuda()
 
         min_loss = np.inf
@@ -115,7 +126,7 @@ class PULSE(nn.Module):
                 latent_in = latent
 
             # Apply learned linear mapping to match latent distribution to that of the mapping network
-            latent_in = self.lrelu(latent_in*self.gaussian_fit["std"] + self.gaussian_fit["mean"])
+            latent_in = self.lrelu(latent_in*gaussian_fit["std"] + gaussian_fit["mean"])
 
             # Normalize image to [0,1] instead of [-1,1]
             gen_im = (self.synthesizer(latent_in)+1)/2
@@ -168,7 +179,7 @@ def main():
     parser.add_argument('--save_intermediate', action='store_true', help='Whether to store and save intermediate HR and LR images during optimization')
     args = parser.parse_args()
 
-    dataset = Images(args.input_dir, duplicates=3)
+    dataset = Images(args.input_dir, duplicates=1)
     out_path = Path(args.output_dir)
     out_path.mkdir(parents=True, exist_ok=True)
 
@@ -188,6 +199,7 @@ def main():
                 int_path_HR.mkdir(parents=True, exist_ok=True)
                 int_path_LR.mkdir(parents=True, exist_ok=True)
             for j,(HR,LR) in enumerate(model(ref_im, args.loss_str, args.eps, args.tile_latent, args.opt_name, args.steps, args.learning_rate, args.lr_schedule, args.save_intermediate)):
+                print('** Number : {}'.format(str(j)))
                 for i in range(args.batch_size):
                     toPIL(HR[i].cpu().detach().clamp(0, 1)).save(
                         int_path_HR / f"{ref_im_name[i]}_{j:0{padding}}.png")
