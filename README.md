@@ -48,9 +48,11 @@ Mixing two input faces. I mixed my face with Conor Mcgregor's.
 ### Usage
 
 1) Extract latent representations of a pair of input images.
+
 ```bash
 python encode_image.py PATH+NAME_OF_ALIGNED_IMAGE_1 SAVING_PATH_1 --save_optimized_image True --iterations 1000 --use_latent_finder True
 ```
+
 ```bash
 python encode_image.py PATH+NAME_OF_ALIGNED_IMAGE_2 SAVING_PATH_2 --save_optimized_image True --iterations 1000 --use_latent_finder True
 ```
